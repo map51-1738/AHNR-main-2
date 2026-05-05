@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>L-JAM – Address Directory</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase SDK -->
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      query,
+      where,
+      or
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCs35k29BpRWesyteZw-fCF9BU85qp7Q_w",
+      projectId: "accessible-living-database",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app, "accessible-living-test");
+
+    window.db = db;
+    window.fs = {collection, getDocs, query, where, or};
+  </script>
+
+  <script>
+
+  const FEATURE_LABELS = {
+    vi_wellLit:                       "Well-lit",
+    vi_braille_commonAreas:           "Braille – Common areas only",
+    vi_braille_everywhere:            "Braille – Everywhere",
+    vi_colorContrastedElectrical:     "Color-contrasted electrical",
+    vi_audibleApplianceIndicators:    "Audible indicators for appliances",
+    mob_noStairs:                     "No stairs",
+    mob_minimalStairs:                "Minimal stairs",
+    mob_firstOrSingleFloor:           "First floor / single floor",
+    mob_elevator_1:                   "Elevator accessible (1)",
+    mob_elevator_2:                   "Elevator accessible (2)",
+    mob_elevator_3plus:               "Elevator accessible (3+)",
+    mob_wideDoorways36to42:           "Wide doorways (36–42 in.)",
+    mob_stairLift:                    "Stair lift",
+    mob_rollInShower:                 "Roll-in showers",
+    mob_showerWithSeat:               "Shower with seat",
+    mob_grabBars_kitchen:             "Grab bars – Kitchen",
+    mob_grabBars_stairways:           "Grab bars – Stairways",
+    mob_grabBars_other:               "Grab bars – Other",
+    mob_loweredCounters_kitchen:      "Lowered countertops – Kitchen",
+    mob_loweredCounters_bathroom:     "Lowered countertops – Bathroom",
+    mob_loweredCounters_other:        "Lowered countertops – Other",
+    mob_rollUnderSinks_kitchen:       "Roll-under sinks – Kitchen",
+    mob_rollUnderSinks_bathroom:      "Roll-under sinks – Bathroom",
+    mob_rollUnderSinks_other:         "Roll-under sinks – Other",
+    mob_frontFacingApplianceControls: "Appliances with front-facing controls",
+    mob_leverDoorHandles:             "Lever door handles",
+    mob_lightSwitch_regular:          "Light switches – Switch-type",
+    mob_lightSwitch_rocker:           "Light switches – Rocker-type",
+    mob_lightSwitch_automatic:        "Light switches – Automatic",
+    mob_lightSwitch_other:            "Light switches – Other",
+    hi_strobe_fireAlarms:             "Strobe alarms – Fire alarms",
+    hi_strobe_smokeDetectors:         "Strobe alarms – Smoke detectors",
+    hi_strobe_doorbells:              "Strobe alarms – Doorbells",
+    hi_visualApplianceIndicators:     "Visual indicators for appliances",
+    cog_easyToNavigate:               "Easy to navigate",
+    cog_dimmableLightingSoundproofing:"Dimmable lighting & soundproofing",
+    cog_stoveAutoShutoff:             "Automatic stove shut-off",
+    oth_highPowerOutlets:             "High-power electrical outlets",
+    oth_dedicatedStorage:             "Dedicated storage space",
+    oth_hardwoodOrLaminate:           "Hardwood or laminate flooring",
+    note_flag:                        "Flagged",
+  };
+
+  function getLatestEntry(doc) {
+    return (doc.entries && doc.entries.length > 0)
+      ? doc.entries[doc.entries.length - 1]
+      : {};
+  }
+
+  async function fetchByZip(value) {
+    const { collection, getDocs, query, where } = window.fs;
+    const q = query(collection(window.db, "reports"), where("zip", "==", value.trim()));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  async function fetchByFeatures(keys) {
+    const { collection, getDocs, query, where, or } = window.fs;
+    const q = query(collection(window.db, "reports"), or(...keys.map(k => where(k, "==", true))));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  const FILTER_DEFS = {
+    zip: {
+      label: "ZIP Code", placeholder: "00000", inputmode: "numeric",
+      maxlength: "5", icon: "📍", btnText: "Search",
+      async fetch(value) { return fetchByZip(value); }
+    },
+    wheelchairAccessible: {
+      label: "Wheelchair Accessible", inputmode: "none", maxlength: "0",
+      icon: "♿", btnText: "Find All", noInput: true,
+      async fetch() {
+        return fetchByFeatures([
+          "mob_noStairs","mob_minimalStairs","mob_firstOrSingleFloor",
+          "mob_elevator_1","mob_elevator_2","mob_elevator_3plus",
+          "mob_wideDoorways36to42","mob_stairLift","mob_rollInShower",
+          "mob_showerWithSeat","mob_grabBars_kitchen","mob_grabBars_stairways",
+          "mob_grabBars_other","mob_loweredCounters_kitchen","mob_loweredCounters_bathroom",
+          "mob_loweredCounters_other","mob_rollUnderSinks_kitchen","mob_rollUnderSinks_bathroom",
+          "mob_rollUnderSinks_other","mob_frontFacingApplianceControls","mob_leverDoorHandles",
+          "mob_lightSwitch_regular","mob_lightSwitch_rocker","mob_lightSwitch_automatic",
+          "mob_lightSwitch_other",
+        ]);
+      }
+    },
+    vision: {
+      label: "Visual Impairment Friendly", inputmode: "none", maxlength: "0",
+      icon: "👁", btnText: "Find All", noInput: true,
+      async fetch() {
+        return fetchByFeatures([
+          "vi_wellLit","vi_braille_commonAreas","vi_braille_everywhere",
+          "vi_colorContrastedElectrical","vi_audibleApplianceIndicators",
+        ]);
+      }
+    },
+    hearing: {
+      label: "Hearing Impairment Friendly", inputmode: "none", maxlength: "0",
+      icon: "👂", btnText: "Find All", noInput: true,
+      async fetch() {
+        return fetchByFeatures([
+          "hi_strobe_fireAlarms","hi_strobe_smokeDetectors",
+          "hi_strobe_doorbells","hi_visualApplianceIndicators",
+        ]);
+      }
+    },
+    cognitive: {
+      label: "Cognitive & Disability Friendly", inputmode: "none", maxlength: "0",
+      icon: "🧠", btnText: "Find All", noInput: true,
+      async fetch() {
+        return fetchByFeatures([
+          "cog_easyToNavigate","cog_dimmableLightingSoundproofing","cog_stoveAutoShutoff",
+        ]);
+      }
+    },
+    flagged: {
+      label: "Flagged for Review", inputmode: "none", maxlength: "0",
+      icon: "🚩", btnText: "Find All", noInput: true,
+      async fetch() {
+        return fetchByFeatures(["note_flag"]);
+      }
+    },
+  };
+
+  let searchResults = [];
+  let currentFilterKey = "zip";
+
+  function updateHeroInput() {
+    const def = FILTER_DEFS[currentFilterKey];
+    const icon = document.getElementById("searchIcon");
+    const input = document.getElementById("searchInput");
+    const btn = document.getElementById("searchBtn");
+
+    icon.textContent = def.icon;
+    btn.textContent = def.btnText;
+
+    if (def.noInput) {
+      input.style.display = "none";
+      input.value = "";
+    } else {
+      input.style.display = "block";
+      input.placeholder = def.placeholder;
+      input.setAttribute("inputmode", def.inputmode);
+      input.maxLength = parseInt(def.maxlength, 10) || 524288;
+      input.value = "";
+      setTimeout(() => input.focus(), 50);
+    }
+  }
+
+  async function doSearch() {
+    const def = FILTER_DEFS[currentFilterKey];
+    const value = (document.getElementById("searchInput")?.value || "").trim();
+    if (!def.noInput && !value) return;
+
+    setPhase("loading");
+
+    try {
+      searchResults = await def.fetch(value);
+      if (searchResults.length === 0) {
+        setPhase("no-results", def.noInput ? "" : value);
+        return;
+      }
+      buildFilterPanel(searchResults);
+      renderResults(searchResults);
+      setPhase("results", def.noInput ? "" : value);
+    } catch (e) {
+      setPhase("error", e.message);
+    }
+  }
+
+  function buildFilterPanel(data) {
+    const panel = document.getElementById("filterPanel");
+    panel.innerHTML = "";
+
+    const kwWrap = document.createElement("div");
+    kwWrap.className = "filter-group";
+    kwWrap.innerHTML = `<div class="filter-group-title">Keyword</div>
+      <input type="text" id="kwInput" placeholder="Search notes, street…" autocomplete="off"/>`;
+    panel.appendChild(kwWrap);
+    document.getElementById("kwInput").addEventListener("input", applyFilters);
+  }
+
+  function applyFilters() {
+    const kw = (document.getElementById("kwInput")?.value || "").toLowerCase();
+    const filtered = searchResults.filter(a => {
+      if (kw) {
+        const latest = getLatestEntry(a);
+        const hay = `${a.address} ${latest.description}`.toLowerCase();
+        if (!hay.includes(kw)) return false;
+      }
+      return true;
+    });
+    renderResults(filtered);
+  }
+
+  function renderResults(data) {
+    const grid = document.getElementById("cardGrid");
+    document.getElementById("resultCount").textContent =
+      `${data.length} address${data.length !== 1 ? "es" : ""}`;
+
+    if (data.length === 0) {
+      grid.innerHTML = `<div class="empty"><span>◌</span><p>No addresses match your filters.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = data.map((a, i) => {
+      const latest = (a.entries && a.entries.length > 0)
+        ? a.entries[a.entries.length - 1]
+        : {};
+
+      const abs = (latest.accessibilityFeatures || [])
+        .map(ab => `<span class="pill pill--ability">${FEATURE_LABELS[ab] || ab}</span>`).join("");
+
+      return `
+        <div class="card" style="animation-delay:${i * 40}ms">
+          <div class="card-top">
+            <div>
+              <div class="card-street">${a.address || "—"}</div>
+              ${a.apartment ? `<div class="card-loc">Apt ${a.apartment}</div>` : ""}
+            </div>
+          </div>
+          ${abs ? `<div class="card-pills">${abs}</div>` : ""}
+          ${latest.description ? `<p class="card-section-title">Notes:</p><p class="card-notes">${latest.description}</p>` : ""}
+          ${(latest.accessibilityFeatures || []).includes("note_flag") && latest.flagReason ? `<p class="card-section-title">Flag Reason:</p><p class="card-notes">${latest.flagReason}</p>` : ""}
+          ${latest.url ? `<a class="card-url" href="${latest.url}" target="_blank" rel="noopener noreferrer">View listing</a>` : ""}
+        </div>`;
+    }).join("");
+  }
+
+  function setPhase(phase, extra) {
+    document.getElementById("heroPhase").style.display = phase === "hero" ? "flex" : "none";
+    document.getElementById("loadingPhase").style.display = phase === "loading" ? "flex" : "none";
+    document.getElementById("resultsPhase").style.display =
+      ["results", "no-results"].includes(phase) ? "flex" : "none";
+    document.getElementById("errorBanner").style.display = phase === "error" ? "block" : "none";
+    document.getElementById("noResultsBanner").style.display =
+      phase === "no-results" ? "block" : "none";
+
+    if (phase === "no-results") {
+      document.getElementById("noResultsBanner").querySelector("span").textContent = extra;
+      document.getElementById("filterPanel").innerHTML = "";
+      document.getElementById("cardGrid").innerHTML = "";
+      document.getElementById("resultCount").textContent = "0 addresses";
+      document.getElementById("activePillsRow").style.display = "none";
+    }
+    if (phase === "error") {
+      document.getElementById("errorBanner").querySelector("small").textContent = extra;
+    }
+    if (phase === "results") {
+      const def = FILTER_DEFS[currentFilterKey];
+      const label = extra ? `${def.label}: ${extra}` : def.label;
+      document.getElementById("currentZipLabel").textContent = label;
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    setPhase("hero");
+    updateHeroInput();
+
+    document.getElementById("filterDropdown").addEventListener("change", e => {
+      currentFilterKey = e.target.value;
+      updateHeroInput();
+    });
+
+    document.getElementById("searchForm").addEventListener("submit", e => {
+      e.preventDefault();
+      doSearch();
+    });
+
+    document.getElementById("changeZipBtn").addEventListener("click", () => {
+      setPhase("hero");
+      document.getElementById("searchInput").value = "";
+      updateHeroInput();
+    });
+  });
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0e0e0f;
+      --surface:  #18181b;
+      --surface2: #222226;
+      --border:   #2e2e33;
+      --ink:      #f0eff0;
+      --soft:     #8a8994;
+      --accent:   #a855f7;
+      --danger:   #f87171;
+      --warn:     #fbbf24;
+      --r:        8px;
+      --head:     "Syne", sans-serif;
+      --body:     "Epilogue", sans-serif;
+    }
+
+    body { font-family: var(--body); background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: var(--head); font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; }
+    .logo span { color: var(--accent); }
+
+    /* ── Hero ── */
+    #heroPhase {
+      min-height: calc(100vh - 90px);
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 1.75rem; padding: 3rem 1rem; text-align: center;
+    }
+
+    /* Company name */
+    .company-name {
+      font-family: var(--head); font-size: clamp(2.8rem, 9vw, 5.5rem);
+      font-weight: 800; letter-spacing: -0.05em; line-height: 1;
+      color: var(--ink);
+    }
+    .company-name em { font-style: normal; color: var(--accent); }
+
+    .hero-eyebrow {
+      font-family: var(--head); font-size: 0.68rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--soft); margin-top: -0.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--head); font-size: clamp(1.4rem, 4vw, 2.4rem);
+      font-weight: 700; line-height: 1.1; letter-spacing: -0.03em;
+    }
+    .hero-sub {
+      color: var(--soft); font-size: 0.95rem; max-width: 420px;
+      line-height: 1.65; font-weight: 300;
+    }
+
+    /* ── Dropdown ── */
+    .filter-select-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      width: 100%; max-width: 400px;
+    }
+    .filter-select-label {
+      font-family: var(--head); font-size: 0.65rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--soft);
+    }
+    #filterDropdown {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 50px; color: var(--ink); font-family: var(--head);
+      font-size: 0.9rem; font-weight: 600; padding: 0.8rem 1.4rem;
+      outline: none; cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8994' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1.2rem center;
+      padding-right: 2.5rem;
+      transition: border-color 0.2s;
+      text-align: center;
+    }
+    #filterDropdown:focus { border-color: var(--accent); }
+    #filterDropdown option { background: #18181b; }
+
+    /* ── Search form ── */
+    .search-form {
+      display: flex; max-width: 400px; width: 100%;
+      border: 1px solid var(--border); border-radius: 50px;
+      overflow: hidden; background: var(--surface);
+      transition: border-color 0.2s;
+    }
+    .search-form:focus-within { border-color: var(--accent); }
+    .search-icon {
+      display: flex; align-items: center;
+      padding: 0 0 0 1.3rem; font-size: 1rem; pointer-events: none;
+    }
+    #searchInput {
+      flex: 1; background: transparent; border: none; outline: none;
+      padding: 1rem 0.6rem; font-family: var(--head);
+      font-size: 1.25rem; font-weight: 800; color: var(--ink);
+      letter-spacing: 0.1em; min-width: 0; width: 100%;
+    }
+    #searchInput::placeholder { color: #3a3a40; }
+    #inputWrap {
+      display: flex; align-items: center; flex: 1; min-width: 0;
+    }
+    .search-btn {
+      background: var(--accent); color: #0e0e0f; border: none;
+      padding: 0 1.6rem; font-family: var(--head); font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 0 50px 50px 0; transition: background 0.15s;
+      white-space: nowrap; align-self: stretch; display: flex; align-items: center;
+    }
+    .search-btn:hover { background: #761ec9; }
+
+    /* ── Loading ── */
+    #loadingPhase {
+      min-height: calc(100vh - 90px); flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.2rem; color: var(--soft);
+    }
+    .dots { display: flex; gap: 0.4rem; }
+    .dots span {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+      animation: bounce 0.8s ease-in-out infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.15s; }
+    .dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); opacity: .4; }
+      50%      { transform: translateY(-8px); opacity: 1; }
+    }
+    .loading-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; }
+
+    /* ── Banners ── */
+    #noResultsBanner, #errorBanner {
+      display: none; margin: 0.75rem 2rem 0;
+      padding: 0.8rem 1.2rem; border-radius: var(--r); font-size: 0.82rem;
+    }
+    #noResultsBanner { background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.2); color: var(--warn); }
+    #errorBanner     { background: rgba(248,113,113,.07); border: 1px solid rgba(248,113,113,.2); color: var(--danger); }
+
+    /* ── Results layout ── */
+    #resultsPhase { display: flex; align-items: flex-start; min-height: calc(100vh - 90px); }
+
+    .sidebar {
+      width: 252px; flex-shrink: 0;
+      padding: 1.5rem 1.2rem; border-right: 1px solid var(--border);
+      position: sticky; top: 0;
+      max-height: calc(100vh - 90px); overflow-y: auto;
+    }
+    .sidebar-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+    .sidebar-label {
+      font-family: var(--head); font-size: 0.62rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--soft);
+    }
+    #changeZipBtn {
+      background: none; border: 1px solid var(--border); color: var(--accent);
+      font-family: var(--head); font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.25rem 0.6rem; border-radius: 20px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    #changeZipBtn:hover { background: var(--accent); color: #0e0e0f; border-color: var(--accent); }
+
+    .zip-display {
+      font-family: var(--head); font-size: 1.1rem; font-weight: 800;
+      letter-spacing: 0.04em; color: var(--accent); word-break: break-word;
+      margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);
+    }
+
+    .filter-group { margin-bottom: 1.5rem; }
+    .filter-group-title {
+      font-family: var(--head); font-size: 0.61rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--soft); margin-bottom: 0.6rem;
+    }
+
+    #kwInput {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 0.55rem 0.75rem;
+      font-family: var(--body); font-size: 0.82rem; color: var(--ink);
+      outline: none; transition: border-color 0.15s;
+    }
+    #kwInput:focus { border-color: var(--accent); }
+    #kwInput::placeholder { color: var(--soft); }
+
+    .results-main { flex: 1; padding: 1.5rem 2rem; min-width: 0; }
+    .results-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    #resultCount {
+      font-family: var(--head); font-size: 0.68rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--soft);
+    }
+
+    #cardGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.2rem 1.3rem;
+      animation: fadeUp 0.35s ease both;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .card:hover { border-color: #3e3e45; box-shadow: 0 4px 24px rgba(0,0,0,.4); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 0.7rem; margin-bottom: 0.75rem;
+    }
+    .card-street { font-family: var(--head); font-size: 1rem; font-weight: 700; line-height: 1.25; }
+    .card-loc { font-size: 0.72rem; color: var(--soft); margin-top: 0.2rem; font-weight: 300; }
+
+    .card-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.7rem; }
+    .pill--ability {
+      font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 0.17rem 0.48rem; border-radius: 3px; font-weight: 500;
+      background: rgba(99,102,241,.15); color: #a5b4fc;
+    }
+
+    .card-section-title {
+      font-size: 0.62rem; font-family: var(--head); font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft);
+      border-top: 1px solid var(--border); padding-top: 0.7rem; margin-bottom: 0.2rem;
+    }
+    .card-notes {
+      font-size: 0.77rem; color: var(--soft); line-height: 1.6; font-weight: 300;
+    }
+
+    /* Listing URL link at the bottom of each card */
+    .card-url {
+      display: inline-block; margin-top: 0.6rem;
+      font-size: 0.72rem; font-family: var(--head); font-weight: 600;
+      color: var(--accent); text-decoration: none; letter-spacing: 0.04em;
+    }
+    .card-url:hover { text-decoration: underline; }
+
+    .empty {
+      grid-column: 1/-1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 5rem 1rem; color: var(--soft); text-align: center; gap: 0.75rem;
+    }
+    .empty span { font-size: 2.5rem; }
+    .empty p { font-size: 0.84rem; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+    @media (max-width: 720px) {
+      #resultsPhase { flex-direction: column; }
+      .sidebar { width: 100%; max-height: none; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+      .results-main { padding: 1.25rem 1rem; }
+      .topbar { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">L-JAM<span>.</span></div>
+</div>
+
+<!-- HERO -->
+
+<div id="heroPhase" style="display:flex">
+  <div class="company-name">L<em>-</em>JAM</div>
+  <div class="hero-eyebrow">Address Directory</div>
+  <h1 class="hero-title">Where are you starting today?</h1>
+  <p class="hero-sub">Choose a filter below, then enter a value to explore the address database.</p>
+
+  <div class="filter-select-wrap">
+    <span class="filter-select-label">Start by filtering on</span>
+    <select id="filterDropdown">
+      <option value="zip">ZIP Code</option>
+      <option value="wheelchairAccessible">Wheelchair Accessible</option>
+      <option value="vision">Visual Impairment Friendly</option>
+      <option value="hearing">Hearing Impairment Friendly</option>
+      <option value="cognitive">Cognitive &amp; Disability Friendly</option>
+      <option value="flagged">Flagged for Review</option>
+    </select>
+  </div>
+
+  <form id="searchForm" class="search-form">
+    <span class="search-icon" id="searchIcon">📍</span>
+    <div id="inputWrap">
+      <input id="searchInput" type="text" autocomplete="off" placeholder="00000"/>
+    </div>
+    <button type="submit" class="search-btn" id="searchBtn">Search</button>
+  </form>
+</div>
+
+<!-- LOADING -->
+
+<div id="loadingPhase" style="display:none">
+  <div class="dots"><span></span><span></span><span></span></div>
+  <div class="loading-label">Fetching addresses…</div>
+</div>
+
+<!-- BANNERS -->
+
+<div id="noResultsBanner">No addresses found for <span></span>. Try a different value.</div>
+<div id="errorBanner">Could not connect to database. <small></small></div>
+
+<!-- RESULTS -->
+
+<div id="resultsPhase" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-label">Filters</span>
+      <button id="changeZipBtn">New Search</button>
+    </div>
+    <div class="zip-display" id="currentZipLabel"></div>
+    <div id="filterPanel"></div>
+  </aside>
+
+  <div class="results-main">
+    <div class="results-topbar">
+      <span id="resultCount"></span>
+    </div>
+    <div id="cardGrid"></div>
+  </div>
+</div>
+
+</body>
+</html>
+
