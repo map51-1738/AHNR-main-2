@@ -1,0 +1,277 @@
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+    margin: 0;
+    padding: 12px;
+    width: 380px;
+    max-height: 560px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background: #0f172a;
+    color: #e5e7eb;
+}
+
+h1 {
+    font-size: 16px;
+    margin: 0 0 8px;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+.section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    margin-bottom: 4px;
+}
+
+.address-zip-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.address-col {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.zip-col {
+    flex: 0 0 80px;
+}
+
+.section-label--spaced {
+    margin-top: 10px;
+}
+
+.optional-tag {
+    font-weight: 400;
+    color: #9ca3af;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    margin: 8px 0 2px;
+    color: #d1d5db;
+}
+
+input[type="text"],
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #1f2937;
+    background: #020617;
+    color: #e5e7eb;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 26px;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px #0ea5e9;
+}
+
+textarea {
+    min-height: 70px;
+    max-height: 180px;
+}
+
+.buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+button {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: background 0.15s ease, transform 0.05s ease,
+    box-shadow 0.1s ease;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+#save-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #022c22;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.35);
+}
+
+#save-btn:hover {
+    background: linear-gradient(135deg, #4ade80, #16a34a);
+}
+
+#load-btn {
+    background: #111827;
+    color: #e5e7eb;
+    border: 1px solid #1f2937;
+}
+
+#load-btn:hover {
+    background: #1f2937;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 11px;
+    min-height: 16px;
+}
+
+.status.ok {
+    color: #6ee7b7;
+}
+
+.status.error {
+    color: #fca5a5;
+}
+
+.meta {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 4px;
+    word-break: break-all;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    color: #d1d5db;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 4px;
+    accent-color: #22c55e;
+}
+
+.filter-category {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #1e293b;
+}
+
+.filter-category:first-of-type {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: none;
+}
+
+.filter-category-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+}
+
+.filter-dropdown {
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #1f2937;
+    background: #020617;
+    overflow: hidden;
+}
+
+.filter-dropdown summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: #cbd5e1;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    user-select: none;
+}
+
+.filter-dropdown summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-dropdown summary::after {
+    content: "▾";
+    font-size: 9px;
+    color: #64748b;
+}
+
+.filter-dropdown[open] summary::after {
+    content: "▴";
+}
+
+.filter-dropdown summary:hover {
+    background: #0f172a;
+}
+
+.dropdown-checkboxes {
+    padding: 4px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-top: 1px solid #1f2937;
+}
+
+.dropdown-checkboxes .checkbox-item {
+    margin: 0;
+}
+
+.filter-row {
+    margin: 4px 0;
+}
+
+#report-history {
+    margin-top: 10px;
+}
+
+.history-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    margin-bottom: 6px;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.history-btn {
+    flex: unset;
+    background: #111827;
+    color: #93c5fd;
+    border: 1px solid #1f2937;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 400;
+    padding: 5px 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.history-btn:hover {
+    background: #1f2937;
+    color: #bfdbfe;
+}
