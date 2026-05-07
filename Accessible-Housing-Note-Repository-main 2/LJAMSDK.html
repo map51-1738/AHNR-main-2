@@ -309,6 +309,39 @@
       document.getElementById("searchInput").value = "";
       updateHeroInput();
     });
+
+    // --- Form Scanner Integration ---
+    const formScannerContainer = document.getElementById("form-scanner-container");
+    const mainContentElements = [
+      document.getElementById("heroPhase"),
+      document.getElementById("loadingPhase"),
+      document.getElementById("resultsPhase"),
+      document.getElementById("noResultsBanner"),
+      document.getElementById("errorBanner"),
+    ];
+
+    function showMainContent() {
+      formScannerContainer.style.display = "none";
+      document.body.style.overflow = ""; // Restore default overflow
+      mainContentElements.forEach(el => {
+        if (el && el.id === "heroPhase") {
+          el.style.display = "flex";
+        } else if (el) {
+          el.style.display = "none";
+        }
+      });
+      setPhase("hero");
+    }
+
+    function showFormScanner() {
+      mainContentElements.forEach(el => { if (el) el.style.display = "none"; });
+      formScannerContainer.style.display = "flex"; // Use flex for the scanner container
+      document.body.style.overflow = "hidden"; // Hide body overflow when scanner is active
+      window.initFormScanner();
+    }
+
+    document.getElementById("btn-open-form-scanner").addEventListener("click", showFormScanner);
+    formScannerContainer.querySelector("#btn-back").addEventListener("click", showMainContent);
   });
   </script>
 
@@ -331,6 +364,256 @@
     }
 
     body { font-family: var(--body); background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* --- Form Scanner Styles --- */
+    #form-scanner-container {
+      /* ── Reset & Base ── */
+      /* *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } */
+
+      width: 360px; /* This width is for the popup, might need adjustment for full page */
+      min-height: 480px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f7f8fa;
+      color: #1a1a2e;
+      font-size: 14px;
+      margin: 20px auto; /* Center the scanner on the page */
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    #form-scanner-container .screen { display: none; padding: 20px; }
+    #form-scanner-container .screen.active { display: flex; flex-direction: column; gap: 16px; }
+
+    #form-scanner-container header { text-align: center; }
+    #form-scanner-container .logo { font-size: 36px; line-height: 1; }
+    #form-scanner-container h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-top: 4px; }
+    #form-scanner-container .subtitle { font-size: 12px; color: #666; margin-top: 2px; }
+
+    #form-scanner-container .upload-area {
+      border: 2px dashed #b0b8d0;
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      background: #fff;
+      transition: border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    #form-scanner-container .upload-area.drag-over {
+      border-color: #4a6cf7;
+      background: #eef1fd;
+    }
+    #form-scanner-container .upload-icon { font-size: 32px; }
+    #form-scanner-container .upload-label { font-weight: 600; color: #333; }
+    #form-scanner-container .upload-hint { font-size: 12px; color: #999; }
+
+    #form-scanner-container .btn {
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    #form-scanner-container .btn:active { transform: scale(0.97); }
+    #form-scanner-container .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #form-scanner-container .btn-primary {
+      background: #4a6cf7;
+      color: #fff;
+      width: 100%;
+      max-width: 180px;
+    }
+    #form-scanner-container .btn-primary:hover:not(:disabled) { background: #3a5ce5; }
+
+    #form-scanner-container .btn-secondary {
+      background: #e8e4f6; /* Corrected from e8eaf6 to match original */
+      color: #4a6cf7;
+      width: 100%;
+      max-width: 180px;
+    }
+    #form-scanner-container .btn-secondary:hover:not(:disabled) { background: #d5d9f7; }
+
+    #form-scanner-container .btn-back {
+      background: none;
+      border: none;
+      color: #4a6cf7;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      font-weight: 600;
+    }
+    #form-scanner-container .btn-link {
+      background: none;
+      border: none;
+      color: #4a6cf7;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+    #form-scanner-container .btn-link:hover { background: #eef1fd; }
+
+    #form-scanner-container .api-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid #dde1ee;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    #form-scanner-container .api-row label {
+      font-size: 12px;
+      color: #666;
+      white-space: nowrap;
+    }
+    #form-scanner-container .api-row input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      background: transparent;
+      color: #1a1a2e;
+    }
+    #form-scanner-container .api-note { font-size: 11px; color: #aaa; text-align: center; margin-top: -8px; }
+
+    #form-scanner-container .processing-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px 20px;
+      text-align: center;
+      min-height: 400px;
+      justify-content: center;
+    }
+    #form-scanner-container .processing-content h2 { font-size: 18px; }
+    #form-scanner-container #processing-status { color: #666; font-size: 13px; }
+    #form-scanner-container .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #e8eaf6;
+      border-top-color: #4a6cf7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #form-scanner-container .preview-thumb-wrap {
+      width: 120px;
+      height: 90px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid #dde1ee;
+    }
+    #form-scanner-container #preview-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #form-scanner-container .review-header {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      align-items: center;
+      gap: 2px 12px;
+      text-align: left;
+    }
+    #form-scanner-container .review-header h1 { font-size: 18px; }
+    #form-scanner-container .review-header .subtitle { grid-column: 2; font-size: 12px; color: #666; }
+    #form-scanner-container .review-header .btn-back { grid-row: span 2; }
+
+    #form-scanner-container .error-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #856404;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    #form-scanner-container .error-banner.hidden { display: none; }
+
+    #form-scanner-container .fields-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    #form-scanner-container .fields-container::-webkit-scrollbar { width: 4px; }
+    #form-scanner-container .fields-container::-webkit-scrollbar-thumb { background: #d0d5e8; border-radius: 4px; }
+
+    #form-scanner-container .field-item {
+      background: #fff;
+      border: 1px solid #dde1ee;
+      border-radius: 10px;
+      padding: 12px 14px;
+      transition: border-color 0.2s;
+    }
+    #form-scanner-container .field-item:focus-within { border-color: #4a6cf7; }
+    #form-scanner-container .field-item.flagged { border-color: #ffc107; background: #fffdf0; }
+
+    #form-scanner-container .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #form-scanner-container .flag-badge {
+      font-size: 10px;
+      background: #ffc107;
+      color: #6d4c00;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    #form-scanner-container .field-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: transparent;
+      resize: vertical;
+      font-family: inherit;
+      min-height: 24px;
+    }
+    #form-scanner-container .field-input:empty:before {
+      content: attr(data-placeholder);
+      color: #bbb;
+    }
+
+    #form-scanner-container .action-row {
+      display: flex;
+      gap: 10px;
+    }
+    #form-scanner-container .action-row .btn { flex: 1; max-width: unset; }
+
+    #form-scanner-container .copy-confirm {
+      text-align: center;
+      font-size: 12px;
+      color: #2e7d32;
+    }
+    #form-scanner-container .copy-confirm.hidden { display: none; }
+
 
     /* ── Topbar ── */
     .topbar {
@@ -579,9 +862,75 @@
 
 <div class="topbar">
   <div class="logo">L-JAM<span>.</span></div>
+  <button id="btn-open-form-scanner" class="btn btn-secondary">Scan Form</button>
 </div>
 
 <!-- HERO -->
+
+<!-- FORM SCANNER -->
+<div id="form-scanner-container" style="display:none;">
+  <!-- SCREEN 1: Upload -->
+  <div id="screen-upload" class="screen active">
+    <header>
+      <div class="logo">📋</div>
+      <h1>Form Scanner</h1>
+      <p class="subtitle">Scan your handwritten form</p>
+    </header>
+
+    <div class="upload-area" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*" hidden />
+      <div class="upload-icon">📷</div>
+      <p class="upload-label">Drop an image here</p>
+      <p class="upload-hint">or</p>
+      <button class="btn btn-primary" id="btn-upload-file">Choose Image</button>
+      <button class="btn btn-secondary" id="btn-camera">Use Camera</button>
+      <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
+    </div>
+
+    <div class="api-row">
+      <label for="api-key-input">Gemini API Key</label>
+      <input type="password" id="api-key-input" placeholder="Paste your API key..." />
+      <button class="btn-link" id="btn-save-key">Save</button>
+    </div>
+    <p class="api-note">Key is saved locally in your browser.</p>
+  </div>
+
+  <!-- SCREEN 2: Processing -->
+  <div id="screen-processing" class="screen">
+    <div class="processing-content">
+      <div class="spinner"></div>
+      <h2>Reading your form…</h2>
+      <p id="processing-status">Sending to Gemini AI</p>
+      <div class="preview-thumb-wrap">
+        <img id="preview-thumb" alt="Uploaded form preview" />
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Review / Edit -->
+  <div id="screen-review" class="screen">
+    <header class="review-header">
+      <button class="btn-back" id="btn-back">← Back</button>
+      <h1>Review Fields</h1>
+      <p class="subtitle">Fix any errors below</p>
+    </header>
+
+    <div id="error-banner" class="error-banner hidden">
+      <span>⚠️</span>
+      <span id="error-message">Some fields may need correction.</span>
+    </div>
+
+    <div id="fields-container" class="fields-container">
+      <!-- Fields injected here by JS -->
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" id="btn-copy-json">Copy JSON</button>
+      <button class="btn btn-primary" id="btn-copy-text">Copy as Text</button>
+    </div>
+    <p class="copy-confirm hidden" id="copy-confirm">✅ Copied!</p>
+  </div>
+</div>
 
 <div id="heroPhase" style="display:flex">
   <div class="company-name">L<em>-</em>JAM</div>
@@ -642,6 +991,293 @@
   </div>
 </div>
 
+  <script>
+    // Modified Form Scanner JavaScript
+    (function() { // IIFE to encapsulate the script
+
+    // ══════════════════════════════════════════════
+    //  Form Scanner — popup.js
+    //  Uses Gemini Vision API to extract form fields
+    //  from an uploaded image of a handwritten form.
+    // ══════════════════════════════════════════════
+
+    // ── Config ──────────────────────────────────
+    const GEMINI_MODEL = "gemini-1.5-flash";
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+    // ── State ────────────────────────────────────
+    let currentImageBase64 = null;   // base64 string (no prefix)
+    let currentImageMime   = null;   // e.g. "image/jpeg"
+    let extractedFields    = [];     // [{ label, value, flagged }]
+
+    // ── DOM refs ─────────────────────────────────
+    // These will be selected within the #form-scanner-container
+    const formScannerContainer = document.getElementById("form-scanner-container");
+    const screens = {
+      upload:     formScannerContainer.querySelector("#screen-upload"),
+      processing: formScannerContainer.querySelector("#screen-processing"),
+      review:     formScannerContainer.querySelector("#screen-review"),
+    };
+
+    const fileInput    = formScannerContainer.querySelector("#file-input");
+    const cameraInput  = formScannerContainer.querySelector("#camera-input");
+    const dropZone     = formScannerContainer.querySelector("#drop-zone");
+    const apiKeyInput  = formScannerContainer.querySelector("#api-key-input");
+    const previewThumb = formScannerContainer.querySelector("#preview-thumb");
+    const processingStatus = formScannerContainer.querySelector("#processing-status");
+    const fieldsContainer  = formScannerContainer.querySelector("#fields-container");
+    const errorBanner  = formScannerContainer.querySelector("#error-banner");
+    const errorMessage = formScannerContainer.querySelector("#error-message");
+    const copyConfirm  = formScannerContainer.querySelector("#copy-confirm");
+
+    // ── Screen navigation ─────────────────────────
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.remove("active"));
+      screens[name].classList.add("active");
+    }
+
+    // ── Init: load saved API key ──────────────────
+    // This will be called when the form scanner is activated
+    function initFormScanner() {
+      const geminiApiKey = localStorage.getItem("geminiApiKey");
+      if (geminiApiKey) {
+        apiKeyInput.value = geminiApiKey;
+      }
+      showScreen("upload");
+    }
+
+    // ── Save API key ──────────────────────────────
+    formScannerContainer.querySelector("#btn-save-key").addEventListener("click", () => {
+      const key = apiKeyInput.value.trim();
+      if (!key) return;
+      localStorage.setItem("geminiApiKey", key);
+      const btn = formScannerContainer.querySelector("#btn-save-key");
+      btn.textContent = "✓ Saved";
+      setTimeout(() => (btn.textContent = "Save"), 1500);
+    });
+
+    // ── Upload button ─────────────────────────────
+    formScannerContainer.querySelector("#btn-upload-file").addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+
+    // ── Camera button ─────────────────────────────
+    formScannerContainer.querySelector("#btn-camera").addEventListener("click", () => cameraInput.click());
+    cameraInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+
+    // ── Drag-and-drop ─────────────────────────────
+    dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("drag-over");
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    // ── Back button ───────────────────────────────
+    formScannerContainer.querySelector("#btn-back").addEventListener("click", () => showScreen("upload"));
+
+    // ── Copy buttons ─────────────────────────────
+    formScannerContainer.querySelector("#btn-copy-text").addEventListener("click", () => {
+      const text = extractedFields.map(f => `${f.label}: ${f.value}`).join("\n");
+      copyToClipboard(text);
+    });
+
+    formScannerContainer.querySelector("#btn-copy-json").addEventListener("click", () => {
+      const obj = {};
+      extractedFields.forEach(f => (obj[f.label] = f.value));
+      copyToClipboard(JSON.stringify(obj, null, 2));
+    });
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        copyConfirm.classList.remove("hidden");
+        setTimeout(() => copyConfirm.classList.add("hidden"), 2000);
+      });
+    }
+
+    // ══════════════════════════════════════════════
+    //  Core: Handle image file
+    // ══════════════════════════════════════════════
+    function handleFile(file) {
+      if (!file || !file.type.startsWith("image/")) {
+        alert("Please choose an image file.");
+        return;
+      }
+
+      const apiKey = apiKeyInput.value.trim();
+      if (!apiKey) {
+        alert("Please enter your Gemini API key first.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        // Show preview
+        previewThumb.src = dataUrl;
+        // Strip the data:image/jpeg;base64, prefix
+        const [meta, b64] = dataUrl.split(",");
+        currentImageBase64 = b64;
+        currentImageMime   = file.type;
+
+        showScreen("processing");
+        scanFormWithGemini(apiKey);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ══════════════════════════════════════════════
+    //  Gemini Vision API call
+    // ══════════════════════════════════════════════
+    async function scanFormWithGemini(apiKey) {
+      processingStatus.textContent = "Sending image to Gemini AI…";
+
+      const prompt = `You are a form data extraction assistant.
+
+    Examine this image of a handwritten or printed form.
+    Your job is to:
+    1. Identify every visible field label (e.g. "Name", "Date", "Address", "Signature", etc.)
+    2. Extract the handwritten or typed value next to or under each label.
+    3. If a value is unclear, illegible, or missing, mark it with "flagged": true.
+
+    Return ONLY valid JSON. No explanation. No markdown. No backticks.
+
+    Format:
+    {
+      "fields": [
+        { "label": "Field Name", "value": "Extracted value or empty string", "flagged": false },
+        { "label": "Another Field", "value": "??", "flagged": true }
+      ]
+    }`;
+
+      const body = {
+        contents: [
+          {
+            parts: [
+              {
+                inline_data: {
+                  mime_type: currentImageMime,
+                  data: currentImageBase64,
+                },
+              },
+              { text: prompt },
+            ],
+          },
+        ],
+      };
+
+      try {
+        processingStatus.textContent = "Waiting for AI response…";
+
+        const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err?.error?.message || `API error: ${response.status}`);
+        }
+
+        processingStatus.textContent = "Parsing results…";
+        const data = await response.json();
+
+        // Extract text from Gemini response
+        const rawText = data?.candidates?.[0]?.content?.parts
+          ?.map((p) => p.text || "")
+          .join("") || "";
+
+        // Strip any accidental markdown fences
+        const clean = rawText.replace(/```json|```/gi, "").trim();
+        const parsed = JSON.parse(clean);
+
+        if (!parsed.fields || !Array.isArray(parsed.fields)) {
+          throw new Error("Unexpected response format from AI.");
+        }
+
+        extractedFields = parsed.fields;
+        renderReviewScreen();
+
+      } catch (err) {
+        console.error(err);
+        showScreen("upload");
+        alert(`Scan failed: ${err.message}\n\nPlease check your API key and try again.`);
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    //  Render review screen
+    // ══════════════════════════════════════════════
+    function renderReviewScreen() {
+      fieldsContainer.innerHTML = "";
+      copyConfirm.classList.add("hidden");
+
+      const flaggedCount = extractedFields.filter((f) => f.flagged).length;
+
+      if (flaggedCount > 0) {
+        errorMessage.textContent = `${flaggedCount} field${flaggedCount > 1 ? "s" : ""} may be incorrect — please review the highlighted fields.`;
+        errorBanner.classList.remove("hidden");
+      } else {
+        errorBanner.classList.add("hidden");
+      }
+
+      extractedFields.forEach((field, index) => {
+        const item = document.createElement("div");
+        item.className = "field-item" + (field.flagged ? " flagged" : "");
+
+        const labelRow = document.createElement("div");
+        labelRow.className = "field-label";
+        labelRow.textContent = field.label;
+
+        if (field.flagged) {
+          const badge = document.createElement("span");
+          badge.className = "flag-badge";
+          badge.textContent = "⚠ Check this";
+          labelRow.appendChild(badge);
+        }
+
+        // Editable field
+        const input = document.createElement("textarea");
+        input.className = "field-input";
+        input.rows = 1;
+        input.value = field.value;
+        input.setAttribute("aria-label", field.label);
+
+        // Auto-resize
+        input.addEventListener("input", () => {
+          input.style.height = "auto";
+          input.style.height = input.scrollHeight + "px";
+          // Update our state
+          extractedFields[index].value = input.value;
+          // If user edits a flagged field, unflag it
+          if (field.flagged) {
+            field.flagged = false;
+            item.classList.remove("flagged");
+            badge?.remove?.();
+          }
+        });
+
+        item.appendChild(labelRow);
+        item.appendChild(input);
+        fieldsContainer.appendChild(item);
+
+        // Trigger auto-resize on load
+        requestAnimationFrame(() => {
+          input.style.height = "auto";
+          input.style.height = input.scrollHeight + "px";
+        });
+      });
+
+      showScreen("review");
+    }
+
+    // Expose initFormScanner to the global scope so it can be called from LJAMSDK.html
+    window.initFormScanner = initFormScanner;
+
+    })(); // End IIFE
+  </script>
 </body>
 </html>
 
