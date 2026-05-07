@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Housing Report Saver",
+  "version": "1.0.0",
+  "description": "Capture housing listing info (address and description) from real estate/rental sites, save reports by address, and look them up later.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Housing Report Saver"
+  },
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://www.googleapis.com https://firebase.googleapis.com https://*.googleapis.com https://*.firebaseapp.com https://*.cloudfunctions.net"
+  }
+}

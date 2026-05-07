@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Scanner</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- SCREEN 1: Upload -->
+  <div id="screen-upload" class="screen active">
+    <header>
+      <div class="logo">📋</div>
+      <h1>Form Scanner</h1>
+      <p class="subtitle">Scan your handwritten form</p>
+    </header>
+
+    <div class="upload-area" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*" hidden />
+      <div class="upload-icon">📷</div>
+      <p class="upload-label">Drop an image here</p>
+      <p class="upload-hint">or</p>
+      <button class="btn btn-primary" id="btn-upload-file">Choose Image</button>
+      <button class="btn btn-secondary" id="btn-camera">Use Camera</button>
+      <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
+    </div>
+
+    <div class="api-row">
+      <label for="api-key-input">Gemini API Key</label>
+      <input type="password" id="api-key-input" placeholder="Paste your API key..." />
+      <button class="btn-link" id="btn-save-key">Save</button>
+    </div>
+    <p class="api-note">Key is saved locally in your browser.</p>
+  </div>
+
+  <!-- SCREEN 2: Processing -->
+  <div id="screen-processing" class="screen">
+    <div class="processing-content">
+      <div class="spinner"></div>
+      <h2>Reading your form…</h2>
+      <p id="processing-status">Sending to Gemini AI</p>
+      <div class="preview-thumb-wrap">
+        <img id="preview-thumb" alt="Uploaded form preview" />
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Review / Edit -->
+  <div id="screen-review" class="screen">
+    <header class="review-header">
+      <button class="btn-back" id="btn-back">← Back</button>
+      <h1>Review Fields</h1>
+      <p class="subtitle">Fix any errors below</p>
+    </header>
+
+    <div id="error-banner" class="error-banner hidden">
+      <span>⚠️</span>
+      <span id="error-message">Some fields may need correction.</span>
+    </div>
+
+    <div id="fields-container" class="fields-container">
+      <!-- Fields injected here by JS -->
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" id="btn-copy-json">Copy JSON</button>
+      <button class="btn btn-primary" id="btn-copy-text">Copy as Text</button>
+    </div>
+    <p class="copy-confirm hidden" id="copy-confirm">✅ Copied!</p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
